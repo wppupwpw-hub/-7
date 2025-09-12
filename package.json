@@ -1,0 +1,8 @@
+{
+  "name": "messenger-bot-netlify",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {}
+}
