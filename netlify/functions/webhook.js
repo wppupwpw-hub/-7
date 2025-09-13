@@ -36,7 +36,7 @@ export async function handler(event, context) {
               await getGeminiResponseAndSend(senderId, userMsg, GEMINI_API_KEY, PAGE_ACCESS_TOKEN);
           }
         } else if (webhookEvent.postback && webhookEvent.postback.payload === "GET_STARTED_PAYLOAD") {
-            const welcomeText = "أهلاً بك! أنا مساعدك التعليمي. يمكنك سؤالي عن أي شيء تحتاج إليه في دراستك.";
+            const welcomeText = "أهلاً بك! 👋 أنا مساعدك التعليمي. يمكنك سؤالي عن أي شيء تحتاج إليه في دراستك.";
             await sendMessage(senderId, welcomeText, PAGE_ACCESS_TOKEN);
         }
       }
@@ -53,7 +53,8 @@ async function getGeminiResponseAndSend(senderId, userPrompt, apiKey, token) {
   const maxRetries = 3;
   let response = null;
 
-  const systemPrompt = "أنت مساعد تعليمي متخصص. مهمتك هي تقديم إجابات مفصلة ومُبسطة للطلاب. قم بتوجيه الطلاب من خلال طرح أسئلة توجيهية بعد إجاباتك لمساعدتهم على التفكير النقدي وفهم الموضوع بشكل أعمق. حافظ على لهجة محفزة ومرحبة.";
+  // تم تحديث الـ systemPrompt ليشمل الرموز النصية وتوضيح كيفية استخدامها.
+  const systemPrompt = "أنت مساعد تعليمي متخصص. مهمتك هي تقديم إجابات مفصلة ومُبسطة للطلاب. قم بتوجيه الطلاب من خلال طرح أسئلة توجيهية بعد إجاباتك لمساعدتهم على التفكير النقدي وفهم الموضوع بشكل أعمق. حافظ على لهجة محفزة ومرحبة. استخدم الرموز النصية (مثل ?, ',', ';', '-', ':') والرموز التعبيرية لجعل الإجابات أكثر وضوحًا وجاذبية، ولا تستخدم النجمة (*) للتنسيق.";
 
   const payload = {
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
@@ -68,7 +69,7 @@ async function getGeminiResponseAndSend(senderId, userPrompt, apiKey, token) {
 
       response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
