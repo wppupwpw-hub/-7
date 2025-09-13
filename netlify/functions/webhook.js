@@ -62,7 +62,16 @@ async function getGeminiResponseAndSend(senderId, userPrompt, apiKey, token) {
       parts: [{ text: systemPrompt }]
     },
     generationConfig: {
-      responseMimeType: "application/json"
+      responseMimeType: "application/json",
+      responseSchema: {
+          type: "OBJECT",
+          properties: {
+              "title": { "type": "STRING" },
+              "body": { "type": "STRING" },
+              "question": { "type": "STRING" }
+          },
+          "propertyOrdering": ["title", "body", "question"]
+      }
     }
   };
 
