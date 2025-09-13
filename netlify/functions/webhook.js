@@ -53,13 +53,16 @@ async function getGeminiResponseAndSend(senderId, userPrompt, apiKey, token) {
   const maxRetries = 3;
   let response = null;
 
-  // تم تحديث الـ systemPrompt ليشمل الرموز النصية وتوضيح كيفية استخدامها.
-  const systemPrompt = "أنت مساعد تعليمي متخصص. مهمتك هي تقديم إجابات مفصلة ومُبسطة للطلاب. قم بتوجيه الطلاب من خلال طرح أسئلة توجيهية بعد إجاباتك لمساعدتهم على التفكير النقدي وفهم الموضوع بشكل أعمق. حافظ على لهجة محفزة ومرحبة. استخدم الرموز النصية (مثل ?, ',', ';', '-', ':') والرموز التعبيرية لجعل الإجابات أكثر وضوحًا وجاذبية، ولا تستخدم النجمة (*) للتنسيق.";
+  // توجيه النموذج لإنشاء رد بصيغة JSON.
+  const systemPrompt = "أنت مساعد تعليمي متخصص. مهمتك هي تقديم إجابات مفصلة ومُبسطة للطلاب. قم بتوجيه الطلاب من خلال طرح أسئلة توجيهية بعد إجاباتك. حافظ على لهجة محفزة ومرحبة. يجب أن يكون ردك بصيغة JSON فقط، ويحتوي على الحقول التالية: 'title' (للموضوع), 'body' (للتفاصيل), و 'question' (للسؤال الموجه للطالب).";
 
   const payload = {
     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
     systemInstruction: {
       parts: [{ text: systemPrompt }]
+    },
+    generationConfig: {
+      responseMimeType: "application/json"
     }
   };
 
@@ -95,7 +98,20 @@ async function getGeminiResponseAndSend(senderId, userPrompt, apiKey, token) {
   if (response && response.ok) {
     try {
       const result = await response.json();
-      const botResponse = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'عذرًا، لم أتمكن من العثور على إجابة. يرجى المحاولة مرة أخرى.';
+      const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      let botResponse = 'عذرًا، لم أتمكن من العثور على إجابة. يرجى المحاولة مرة أخرى.';
+      if (rawText) {
+          try {
+              const jsonResponse = JSON.parse(rawText);
+              // تجميع الرد من هيكل JSON
+              botResponse = `${jsonResponse.title}\n\n${jsonResponse.body}\n\n${jsonResponse.question}`;
+          } catch (jsonError) {
+              console.error('JSON parsing error:', jsonError);
+              botResponse = 'عذرًا، كانت هناك مشكلة في معالجة الاستجابة من الخادم.';
+          }
+      }
+      
       await sendMessage(senderId, botResponse, token);
     } catch (jsonError) {
       console.error('JSON parsing error:', jsonError);
